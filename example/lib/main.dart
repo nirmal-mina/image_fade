@@ -81,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
             alignment: Alignment.center,
             fit: BoxFit.cover,
             loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent event) {
-              if (event == null) { return child; }
               return Center(
                 child: CircularProgressIndicator(
                   value: event.expectedTotalBytes == null ? 0.0 : event.cumulativeBytesLoaded / event.expectedTotalBytes
