@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -59,19 +59,29 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // Explicitly-typed error builder to match ImageFadeErrorBuilder (BuildContext, Widget?, dynamic)
+  Widget _imageFadeErrorBuilder(BuildContext context, Widget? child, dynamic exception) {
+    return Container(
+      color: Color(0xFF6F6D6A),
+      child: Center(child: Icon(Icons.warning, color: Colors.black26, size: 128.0)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    ImageProvider image;
-    if (_error) { image = NetworkImage('error.jpg'); }
-    else if (!_clear) { image = NetworkImage(_imgs[_counter]); }
+    ImageProvider? image;
+    if (_error) {
+      image = NetworkImage('error.jpg');
+    } else if (!_clear) {
+      image = NetworkImage(_imgs[_counter]);
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Showing ' + (_error ? 'error' : _clear ? 'placeholder' : 'image #$_counter from Wikimedia')),
       ),
-
       body: Stack(children: <Widget>[
-        Positioned.fill(child: 
+        Positioned.fill(child:
           ImageFade(
             image: image,
             placeholder: Container(
@@ -80,23 +90,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             alignment: Alignment.center,
             fit: BoxFit.cover,
-            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent event) {
+            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? event) {
+              double? value;
+              if (event != null && event.expectedTotalBytes != null) {
+                value = event.cumulativeBytesLoaded / (event.expectedTotalBytes ?? 1);
+              }
               return Center(
                 child: CircularProgressIndicator(
-                  value: event.expectedTotalBytes == null ? 0.0 : event.cumulativeBytesLoaded / event.expectedTotalBytes
+                  value: value,
                 ),
               );
             },
-            errorBuilder: (BuildContext context, Widget child, dynamic exception) {
-              return Container(
-                color: Color(0xFF6F6D6A),
-                child: Center(child: Icon(Icons.warning, color: Colors.black26, size: 128.0)),
-              );
-            },
+            errorBuilder: _imageFadeErrorBuilder,
           )
         )
       ]),
-
       floatingActionButton: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
         FloatingActionButton(
           onPressed: _incrementCounter,
